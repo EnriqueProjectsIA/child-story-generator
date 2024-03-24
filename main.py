@@ -10,12 +10,16 @@ import history_generator as hg
 import image_generator as ig
 import pdf_generator as pg
 
-
+image_model = "dall-e-3"
 
 def wrapper():
+    print("Generating history...")
     data = hg.llm_call_chain_for_history_generation()
-    data = ig.generate_images_for_history(data=data)
+    print("Generating images...")
+    data = ig.generate_images_for_history(data=data, model=image_model)
+    print("Generating PDF...")
     pg.generate_pdf(data)
+
 
 if __name__ == "__main__":
     wrapper()

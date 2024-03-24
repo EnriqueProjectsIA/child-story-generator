@@ -2,6 +2,7 @@ from datetime import datetime as dt
 import datetime
 import requests
 import Levenshtein as lev
+import PyPDF2
 from typing import List
 from pathlib import Path
 import base64
@@ -58,6 +59,17 @@ def delete_image(image_path)->None:
     """
     if Path(image_path).exists():
         Path(image_path).unlink()
+def count_number_of_pages(pdf_path:str)->int:
+    """
+    Count the number of pages in a PDF file
+    """
+    pdf_path = Path(pdf_path)
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"File {pdf_path} not found")
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        number_of_pages = len(reader.pages)
+    return number_of_pages
 if __name__ == "__main__":
     path = Path(__file__).parent.parent /"images" / "temp_64.jpg"
     path_data = r'C:\proyectos_personales\Cuentos\data\2024-03-24_11-58-45_histories_images.pkl'
