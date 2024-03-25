@@ -13,6 +13,14 @@ import pdf_generator as pg
 image_model = "dall-e-3"
 
 def wrapper():
+    """
+    This function generates a history, images, and a PDF.
+
+    It calls the `llm_call_chain_for_history_generation` function to generate the history data,
+    then calls the `generate_images_for_history` function to generate images using the history data and an image model,
+    and finally calls the `generate_pdf` function to generate a PDF using the generated data.
+
+    """
     print("Generating history...")
     data = hg.llm_call_chain_for_history_generation()
     print("Generating images...")
