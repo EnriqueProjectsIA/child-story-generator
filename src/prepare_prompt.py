@@ -74,7 +74,8 @@ def base_prompt_template_image(child_name:str, number_of_years_child:int) -> str
     Estamos preparando una historia para {child_name}. {child_name} tiene una edad de {number_of_years_child} años.
     Necesitamos una imagen para la historia. Se trata de una imagen para colorear.
     La imagen debe ser de lineas simples y debe ser fácil de colorear. 
-    La imagen no debe tener muchos detalles y debe ser fácil de entender.
+    La imagen NO debe tener muchos detalles y debe ser fácil de entender.
+    La imagen NO contendra texto. La imagen NO estará coloreada. La imagen NO estará dividida en secciones.
     La imagen debe estar relacionada o inspirada en la siguiente frase perteneciente a la historia:
     """
     return base_prompt_template
