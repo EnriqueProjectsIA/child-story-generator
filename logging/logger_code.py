@@ -13,14 +13,15 @@ path = path / log_file_name
 path = str(path.resolve())
 name = 'story_teller'
 maxBytes = 10485760  # 10MB
-backupCount = 20
+backupCount = 5
 
 class StdoutFilter(logging.Filter):
     def filter(self, record):
         return record.levelno < logging.WARNING
 
 
-def configure_logger(name:str = name, path:str=path, maxBytes=10485760, backupCount=5):
+def configure_logger(name:str = name, path:str=path,
+                     maxBytes:int=maxBytes, backupCount:int=backupCount):
     """
     Configures and returns a logger object based on provided specifications.
 

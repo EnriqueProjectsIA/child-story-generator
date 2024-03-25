@@ -8,6 +8,7 @@ from datetime import datetime as dt
 import pickle
 from typing import List, Dict
 import time
+import logging
 
 def add_image(doc, image_str, image_path: str, width: str = '0.75') -> None:
     """
@@ -180,7 +181,7 @@ def number_of_pages_in_middle_page(data: Dict[str, Dict[str, str]], path: str,
     
 
 
-def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False) -> None:
+def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False, logger:logging.Logger|None = None ) -> None:
     """
     Generate a PDF document based on the provided data.
 
@@ -221,6 +222,8 @@ def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False) -> No
                 path_moke = Path.joinpath(path_moke, f'moke_page')
                 title = data[history]["title"]
                 width = number_of_pages_in_first_page(data, path, title, history)
+                if logger is not None:
+                    logger.info(f"The width of the first page is {width}")
                 doc = set_up_first_page(data, path, title, history, width)
 
             elif j !=0 and numeber_of_pages-1 != j:
@@ -230,6 +233,8 @@ def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False) -> No
                 width = number_of_pages_in_middle_page(data = data, path = path_moke,
                                                        history=history, image_key= image_key,
                                                        current_page=current_page, width= '0.75')
+                if logger is not None:
+                    logger.info(f"The width of the page {j} is {width}")
                 doc = set_up_middle_page(data = data, path = path_moke, 
                                          doc = doc, history= history, 
                                          image_key = image_key, 
@@ -241,6 +246,8 @@ def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False) -> No
                     doc.append(NoEscape(r'\Huge'))
                     doc.append(NoEscape(data[history][current_page]))
                 if number_of_questions > 0:
+                    if logger is not None:
+                        logger.info(f"Adding {number_of_questions} questions to the document {history}")
                     for k in range(number_of_questions):
                         question = f'question_{k}'
                         if question in data[history].keys():
@@ -251,8 +258,16 @@ def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False) -> No
                             # add underline for the answer
                             doc.append(NoEscape(r'\newline'))
                             doc.append(NoEscape(r'\underline{\hspace{10cm}}'))
-
-        doc.generate_pdf(clean_tex=True, compiler='pdflatex')
+                            if logger is not None:
+                                logger.info(f"Added question {k} to the document {history}")
+        try:
+            doc.generate_pdf(clean_tex=True, compiler='pdflatex')
+            if logger is not None:
+                logger.info(f"Generated PDF for history {history}")
+        except Exception as e:
+            if logger is not None:
+                logger.error(f"Error generating PDF for history {history}: {e}")
+            raise Exception(f"Error generating PDF for history {history}: {e}")
         # sleep 1 second to avoid errors
         time.sleep(1)
 

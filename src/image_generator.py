@@ -1,5 +1,6 @@
 import prepare_prompt as pp
 from dotenv import load_dotenv
+import logging
 import os
 from typing import Dict, Any
 import pickle
@@ -10,7 +11,8 @@ model = "dall-e-3"
 
 def generate_images_for_history(api_key = openai_api_key,
                                model = model,
-                               data:Dict[str,Any]|None=None):
+                               data:Dict[str,Any]|None=None,
+                               logger:logging.Logger|None=None):
     """
     Generates images for the history.
 
@@ -40,7 +42,15 @@ def generate_images_for_history(api_key = openai_api_key,
                 quality="standard",
                 n=1,
             )
-            data[key][f"image_{j}"] = response.data[0].b64_json
+            try:
+                
+                data[key][f"image_{j}"] = response.data[0].b64_json
+                if logger is not None:
+                    logger.info(f"Generated image {j} for history {key}")
+            except Exception as e:
+                if logger is not None:
+                    logger.error(f"Error generating image {j} for history {key}: {e}")
+                raise Exception(f"Error generating image {j} for history {key}: {e}")
     return data
 if __name__ == "__main__":
     # path = r'C:\proyectos_personales\Cuentos\data\2024-03-24_11-58-45_histories.pkl'
