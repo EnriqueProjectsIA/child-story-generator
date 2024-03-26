@@ -2,7 +2,7 @@ import pickle
 import helper_functions as hf
 from pylatex import Document, Command, NoEscape, Figure, NewPage
 from pylatex.utils import bold
-from prepare_prompt import history_base_values
+from read_configuration import history_base_values
 from pathlib import Path
 from datetime import datetime as dt
 import pickle

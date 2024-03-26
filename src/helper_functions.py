@@ -70,6 +70,15 @@ def count_number_of_pages(pdf_path:str)->int:
         reader = PyPDF2.PdfReader(file)
         number_of_pages = len(reader.pages)
     return number_of_pages
+def select_best_history(histories:dict)->str:
+    """
+    Select the best history from a dictionary of histories
+    """
+    index_best_history:int = histories['best_history']
+    key:str = f"history_{index_best_history}"
+    best_history:str = histories[key]
+    return best_history
+
 if __name__ == "__main__":
     path = Path(__file__).parent.parent /"images" / "temp_64.jpg"
     path_data = r'C:\proyectos_personales\Cuentos\data\2024-03-24_11-58-45_histories_images.pkl'

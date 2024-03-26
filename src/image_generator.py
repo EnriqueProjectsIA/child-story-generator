@@ -1,4 +1,5 @@
 import prepare_prompt as pp
+from read_configuration import history_base_values
 from dotenv import load_dotenv
 import logging
 import os
@@ -26,7 +27,7 @@ def generate_images_for_history(api_key = openai_api_key,
 
     """
     client = OpenAI(api_key=api_key)
-    base_dict_values = pp.history_base_values()
+    base_dict_values = history_base_values()
     number_of_pages = base_dict_values["pages"]
     base_prompt_template_images = pp.generate_base_prompt_image()
     for i, (key,history) in enumerate(data.items()):
