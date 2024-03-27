@@ -120,6 +120,25 @@ def base_prompt_template_image(child_name:str, number_of_years_child:int) -> str
     """
     return base_prompt_template
 
+def base_prompt_to_produce_image_prompt(text:str, number_of_pages:int,):
+    base_prompt_template = f"""
+    Eres un experto ilustrador de cuentos infantiles. Tu propósito es ilustrar la historia que se te presenta.
+    La historia tendrá {number_of_pages-1} imágenes. Cáda imagen debe estar relacionada con el texto de la página.
+    Y la vez ser consitente con el argumento de la historia. Las imágenes deben ser sencillas y fáciles de entender.
+    Cáda página debe tener una imagen a excepción de la última página. La última página no tendrá imagen.
+    Las imágenes deben ser de lineas simples y fáciles de colorear. Las imágenes deben ser originales y creativas.
+    El cuento sobre el que basarás las imágenes es el siguiente:
+    {text}
+    
+    En un primer paso razonarás como deben de ser las imágenes para cada página y tu razonamiento será paso a paso.
+    Después descrinirás las imágenes que dibujarás para cada página.
+    Por último proporcinarás el prompt adecuado para que una IA pueda dibujar las imágenes atendiendo a las especificaciones
+    que has dado. Es importante que el prompt sea claro, conciso y que mantenga la coherencia con el texto y las diferentes imágenes.
+    Recuerda que las imágenes deben ser fáciles de colorear y de entender, por lo que el prompt debe mencionar que se trata de una imagen
+    para colorear y que debe ser sencilla y fácil de entender.
+    """
+    return base_prompt_template
+
 def generate_base_prompt() -> str:
     """
     Generate a prompt for the story generator
@@ -140,11 +159,12 @@ def generate_base_prompt() -> str:
         
         prompts.append(prompt)
     return prompts
-def generate_base_prompt_for_chain(number_of_histories:int) -> List[str]:
+def generate_base_prompt_for_chain(number_of_histories:int, base_dict_values:Dict[str,Any]|None = None) -> List[str]:
     """
     Generate a prompt for the story generator
     """
-    base_dict_values = history_base_values()
+    if base_dict_values is None:
+        base_dict_values = history_base_values()
     prompts = []
     for i, name in enumerate(base_dict_values["names"]):
         prompt = base_prompt_template_for_chain(child_name=name,
@@ -160,11 +180,14 @@ def generate_base_prompt_for_chain(number_of_histories:int) -> List[str]:
         
         prompts.append(prompt)
     return prompts
-def generate_base_prompt_review(data:Dict[str,str], other_histories:str|None = None) -> List[str]:
+def generate_base_prompt_review(data:Dict[str,str],
+                                base_dict_values:Dict[str,Any]|None = None,
+                                other_histories:str|None = None) -> List[str]:
     """
     Generate a prompt for the review story generator
     """
-    base_dict_values = history_base_values()
+    if base_dict_values is None:
+        base_dict_values = history_base_values()
     prompts = []
     for i, (k, text) in enumerate(data.items()):
         prompt = review_best_history_template(text=text,
@@ -184,6 +207,24 @@ def generate_base_prompt_image() -> str:
     prompts = []
     for i, name in enumerate(base_dict_values["names"]):
         prompt = base_prompt_template_image(name, base_dict_values["number_of_years"][i])
+        prompts.append(prompt)
+    return prompts
+
+def generate_base_prompt_to_produce_image_prompt(data:Dict[str,Dict[str,str]]) -> str:
+    prompts = []
+    for i, (history, k_v) in enumerate(data.items()):
+        complete_story = ""
+        number_of_pages = 0
+        for j, (element, text) in enumerate(k_v.items()):
+            if "page" in element:
+                complete_story += f"""
+                    {element}: {text}
+
+                    """
+                number_of_pages += 1
+                
+        prompt = base_prompt_to_produce_image_prompt(text=complete_story,
+                                                        number_of_pages=number_of_pages-2)
         prompts.append(prompt)
     return prompts
 
@@ -223,8 +264,9 @@ def prepare_answer_format_for_chain(number_of_histories:int) -> ResponseSchema:
     output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     return output_parser
     
-def prepare_answer_format_review() -> List[ResponseSchema]:
-    base_dict_values = history_base_values()
+def prepare_answer_format_review(base_dict_values:Dict[str,str]|None = None) -> List[ResponseSchema]:
+    if base_dict_values is None:
+        base_dict_values = history_base_values()
     number_of_pages = base_dict_values["pages"]
     questions = base_dict_values["questions"]
     response_schemas = [
@@ -242,6 +284,23 @@ def prepare_answer_format_review() -> List[ResponseSchema]:
                                                    description=f"add question {i} about the story"))
     output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     return output_parser
+def prepare_answer_format_to_prompt_image(base_dict_values:Dict[str,Any]|None  = None) -> ResponseSchema:
+    if base_dict_values is None:
+        base_dict_values = history_base_values()
+    number_of_pages = base_dict_values["pages"]
+    number_of_images = number_of_pages - 1
+    response_schemas = [
+        ResponseSchema(name="reasoning",
+                        description="add reasoning for the images"),
+    ]
+    for i in range(number_of_images):
+        response_schemas.append(ResponseSchema(name=f"description_image_{i}",
+                                               description=f"add text for the description of the image {i} of the story"))
+        response_schemas.append(ResponseSchema(name=f"prompt_image_{i}",
+                                                  description=f"add prompt for to create the image {i} of the story"))
+    output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+    return output_parser
+
 def generate_prompts(base_prompts:List[str]|None = None,
                      output_parser:List[ResponseSchema]|None = None) -> PromptTemplate:
     """
@@ -262,11 +321,11 @@ def generate_prompts(base_prompts:List[str]|None = None,
         output_prompts.append(prompt)
     return output_parser, output_prompts
 
-def generate_prompts_for_chain(number_of_histories:int) -> PromptTemplate:
+def generate_prompts_for_chain(number_of_histories:int,base_dict_values:Dict[str,Any]|None = None) -> PromptTemplate:
     """
     Prepare the prompt for the story generator
     """
-    base_promts = generate_base_prompt_for_chain(number_of_histories)
+    base_promts = generate_base_prompt_for_chain(number_of_histories, base_dict_values=base_dict_values)
     output_parser = prepare_answer_format_for_chain(number_of_histories)
 
     format_instructions = output_parser.get_format_instructions()

@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import time
 
+
 unique_id = time.strftime("%Y-%m-%dT%H-%M-%S")
 log_file_name = f"story_teller_{unique_id}.log"
 path = Path(__file__).parent / "logs"
@@ -21,7 +22,8 @@ class StdoutFilter(logging.Filter):
 
 
 def configure_logger(name:str = name, path:str=path,
-                     maxBytes:int=maxBytes, backupCount:int=backupCount):
+                     maxBytes:int=maxBytes, backupCount:int=backupCount,
+                     identifier:str|None = None) -> logging.Logger:
     """
     Configures and returns a logger object based on provided specifications.
 
@@ -34,6 +36,12 @@ def configure_logger(name:str = name, path:str=path,
     Returns:
     - A configured logger object.
     """
+    if identifier is not None:
+        log_file_name = f"{identifier}_story_teller.log"
+        path = Path(__file__).parent / "logs"
+        path.mkdir(exist_ok=True)
+        path = path / log_file_name
+        path = str(path.resolve())
     logging_config = {
         "version": 1,
         "disable_existing_loggers": False,

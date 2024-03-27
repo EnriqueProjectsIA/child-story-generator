@@ -181,7 +181,9 @@ def number_of_pages_in_middle_page(data: Dict[str, Dict[str, str]], path: str,
     
 
 
-def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False, logger:logging.Logger|None = None ) -> None:
+def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False,
+                 logger:logging.Logger|None = None,
+                 identifier:str|None = None) -> None:
     """
     Generate a PDF document based on the provided data.
 
@@ -209,16 +211,18 @@ def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False, logge
         for j in range(numeber_of_pages):
 
             if j == 0:
-                now = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
+                now = identifier
+                if identifier is None:
+                    now = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
 
                 if test_mode:
                     path = Path(__file__).parent.parent / "out_put_test"
                     path_moke = Path(__file__).parent.parent / "out_put_test"
                 else:
-                    path = Path(__file__).parent.parent / "data"
-                    path_moke = Path(__file__).parent.parent / "data"
+                    path = Path(__file__).parent.parent / "stories"
+                    path_moke = Path(__file__).parent.parent / "stories"
 
-                path = Path.joinpath(path, f'{now}_histories')
+                path = Path.joinpath(path, f'{now}_story_{history}')
                 path_moke = Path.joinpath(path_moke, f'moke_page')
                 title = data[history]["title"]
                 width = number_of_pages_in_first_page(data, path, title, history)
@@ -276,7 +280,7 @@ def generate_pdf(data: Dict[str, Dict[str, str]], test_mode: bool = False, logge
 
 
 if __name__ == '__main__':
-    with open(r'C:\proyectos_personales\Cuentos\out_put_test\2024-03-24_18-35-14_history_images.pkl', 'rb') as f:
+    with open(r'C:\proyectos_personales\Cuentos\out_put_test\image_test_after_image_creation.pkl', 'rb') as f:
         data = pickle.load(f)
-    generate_pdf(data, test_mode=True)
+    generate_pdf(data, test_mode=False)
     print("Done!")

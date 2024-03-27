@@ -20,7 +20,7 @@ def llm_call_chain_for_history_generation(api_key:str = openai_api_key,
                                           t:float=temperature,
                                           logger:logging.Logger|None = None,
                                           parser:str|None = None,
-                                          prompts:List[str]|None = None) -> dict:
+                                          prompts:List[str]|None = None) -> Dict[str,Dict[str,str]]:
     """
     Generates a call chain for history generation using the ChatOpenAI class.
 
@@ -80,15 +80,16 @@ def select_best_histories_step_1(data:Dict[str,Dict[str,str]]) -> Dict[str,str]:
     return best_histories
 
 def make_review(data:Dict[str,Dict[str,str]], api_key:str = openai_api_key,
+                base_dict_values:Dict[str,str] = None,
                 model:str = model, t:float=temperature, logger:logging.Logger|None = None,
                 prompts:List[str]|None = None, parser:List|None = None) -> Dict[str,str]:
     
     all_histories = select_best_histories_step_1(data)
     if prompts is None:
-        prompts = pp.generate_base_prompt_review(all_histories)
+        prompts = pp.generate_base_prompt_review(all_histories, base_dict_values)
 
     if parser is None:
-        parser = pp.prepare_answer_format_review()
+        parser = pp.prepare_answer_format_review(base_dict_values)
     output_parser, output_prompts = pp.generate_prompts(prompts, parser)
     if logger is not None:
         logger.info("Review started")
@@ -101,6 +102,27 @@ def make_review(data:Dict[str,Dict[str,str]], api_key:str = openai_api_key,
         for k,v in result.items():
             logger.info(f"{k}: {v}")
     return result
+
+def make_prompt_images_after_review(data:Dict[str,Dict[str,str]], logger:logging.Logger|None = None,
+                             base_dict_values:Dict[str,str]|None = None)-> Dict[str,Dict[str,str]]:
+    image_prompts = pp.generate_base_prompt_to_produce_image_prompt(data)
+    parser = pp.prepare_answer_format_to_prompt_image(base_dict_values)
+    output_parser, output_prompts = pp.generate_prompts(image_prompts, parser)
+    data_image = llm_call_chain_for_history_generation(parser=output_parser, prompts=output_prompts)
+    for history,image_description in data_image.items():
+        try:
+            for element, description in image_description.items():
+                if 'image' in element:
+                    data[history][element] = description
+            if logger is not None:
+                logger.info(f"Images for history {history} added")
+        except Exception as e:
+            if logger is not None:
+                logger.error(f"Error while adding images for {history}: {e}")
+            raise e
+    return data
+        
+    
 
 if __name__ == "__main__":
     import sys
@@ -118,9 +140,17 @@ if __name__ == "__main__":
     output_parser, output_prompts = pp.generate_prompts_for_chain(4)
     data = llm_call_chain_for_history_generation(logger=logger,
                                                  parser=output_parser, prompts=output_prompts)
-    data = make_review(data, logger=logger)
-    with open(path, 'wb') as f:
-        pickle.dump(data, f)
+    # data = make_review(data, logger=logger)
+    # PATH = r'C:\proyectos_personales\Cuentos\out_put_test\2024-03-26_22-30-44_histories.pkl'
+    # with open(PATH, 'rb') as f:
+    #     data = pickle.load(f)
+    # image_prompts = pp.generate_base_prompt_to_produce_image_prompt(data)
+    # parser = pp.prepare_answer_format_to_prompt_image()
+    # output_parser, output_prompts = pp.generate_prompts(image_prompts, parser)
+    # data = llm_call_chain_for_history_generation(logger=logger,
+    #                                                 parser=output_parser, prompts=output_prompts)
+    # with open(path, 'wb') as f:
+        # pickle.dump(data, f)
 
 
     print("Done!")

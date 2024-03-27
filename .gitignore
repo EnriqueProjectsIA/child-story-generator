@@ -177,5 +177,6 @@ pyrightconfig.json
 cuentos_env/
 data/*
 images/*
+stories/*
 out_put_test/
 test_main.py
