@@ -83,6 +83,23 @@ def make_review(data:Dict[str,Dict[str,str]], api_key:str = openai_api_key,
                 base_dict_values:Dict[str,str] = None,
                 model:str = model, t:float=temperature, logger:logging.Logger|None = None,
                 prompts:List[str]|None = None, parser:List|None = None) -> Dict[str,str]:
+    """
+    Generates a review based on the best story. It typically adds text and makes the history more interesting.
+    A single pass typically improves the story.
+
+    Args:
+        data (Dict[str,Dict[str,str]]): The input data for generating the review.
+        api_key (str, optional): The API key for the OpenAI service. Defaults to openai_api_key.
+        base_dict_values (Dict[str,str], optional): The base dictionary values. Defaults to None.
+        model (str, optional): The model to use for generating the review. Defaults to model.
+        t (float, optional): The temperature parameter for generating the review. Defaults to temperature.
+        logger (logging.Logger|None, optional): The logger object for logging the review process. Defaults to None.
+        prompts (List[str]|None, optional): The list of prompts for generating the review. Defaults to None.
+        parser (List|None, optional): The parser object for formatting the review output. Defaults to None.
+
+    Returns:
+        Dict[str,str]: The generated review.
+    """
     
     all_histories = select_best_histories_step_1(data)
     if prompts is None:
@@ -105,6 +122,22 @@ def make_review(data:Dict[str,Dict[str,str]], api_key:str = openai_api_key,
 
 def make_prompt_images_after_review(data:Dict[str,Dict[str,str]], logger:logging.Logger|None = None,
                              base_dict_values:Dict[str,str]|None = None)-> Dict[str,Dict[str,str]]:
+    """
+    Generates image prompts for each history in the given data dictionary.
+    It try to preserve overall story consistency and coherence.
+    Without this step and based in the text only, the images could be not related to the story or between them.
+
+    Args:
+        data (Dict[str,Dict[str,str]]): A dictionary containing history data.
+        logger (logging.Logger|None, optional): A logger object for logging messages. Defaults to None.
+        base_dict_values (Dict[str,str]|None, optional): A dictionary containing base values for prompts. Defaults to None.
+
+    Returns:
+        Dict[str,Dict[str,str]]: A dictionary containing the updated data with image prompts.
+
+    Raises:
+        Exception: If there is an error while adding images for a history.
+    """
     image_prompts = pp.generate_base_prompt_to_produce_image_prompt(data)
     parser = pp.prepare_answer_format_to_prompt_image(base_dict_values)
     output_parser, output_prompts = pp.generate_prompts(image_prompts, parser)

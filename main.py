@@ -52,9 +52,14 @@ def wrapper(use_logger:bool = False, save_data:bool = False):
     pg.generate_pdf(data, logger=logger)
 
 def wrapper_review(use_logger:bool = False, save_data:bool = False):
+    """
+    Executes the process of generating stories, reviewing them, generating images, and generating a PDF.
+
+    Args:
+        use_logger (bool, optional): Flag indicating whether to use a logger for logging. Defaults to False.
+        save_data (bool, optional): Flag indicating whether to save the generated data. Defaults to False.
+    """
     identifier = dt.now().strftime("%Y_%m_%dT%H_%M_%S")
-    path_save_data = Path(__file__).parent / "data"
-    path_save_data.mkdir(exist_ok=True)
     path_save_data = path_save_data / f"{identifier}_data.pkl"
     logger = None
     
@@ -94,7 +99,22 @@ def wrapper_review(use_logger:bool = False, save_data:bool = False):
     pg.generate_pdf(data, logger=logger, identifier=identifier)
 
 
-def main(review:bool = True, use_logger:bool = False, save_data:bool = False):
+def main(review: bool = True, use_logger: bool = False, save_data: bool = False):
+    """
+    Main function for story generation process.
+
+    Args:
+        review (bool): Flag indicating whether to review the generated story (default is True).
+        use_logger (bool): Flag indicating whether to use a logger for logging (default is False).
+        save_data (bool): Flag indicating whether to save the generated data (default is False).
+    """
+    path_save_data = Path(__file__).parent / "data"
+    path_save_images = Path(__file__).parent / "images"
+    path_save_stories = Path(__file__).parent / "stories"
+    path_save_data.mkdir(exist_ok=True)
+    path_save_images.mkdir(exist_ok=True)
+    path_save_stories.mkdir(exist_ok=True)
+    
     if review:
         wrapper_review(use_logger=use_logger, save_data=save_data)
     else:

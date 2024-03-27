@@ -74,6 +74,9 @@ def base_prompt_template_for_chain(child_name:str, number_of_years_child:int, to
 def review_best_history_template(text:str,language:str, number_of_years_child:int,
                                  number_of_words:int, questions:int,
                                  other_histories:str|None = None) -> str:
+    """
+    Generate a prompt for the review story generator
+    """
     review_prompt = f"""
     Eres un experto revisando historias y hablas en {language}. Tus revisiones son muy importantes para mejorar las historias.
     Cuando escribas tu historia revisada lo harás en el idioma "{language}". Cuando escribas tus
@@ -110,6 +113,9 @@ def review_best_history_template(text:str,language:str, number_of_years_child:in
     return review_prompt
 
 def base_prompt_template_image(child_name:str, number_of_years_child:int) -> str:
+    """
+    Generate a prompt for the images in the story
+    """
     base_prompt_template = f"""
     Estamos preparando una historia para {child_name}. {child_name} tiene una edad de {number_of_years_child} años.
     Necesitamos una imagen para la historia. Se trata de una imagen para colorear.
@@ -265,6 +271,9 @@ def prepare_answer_format_for_chain(number_of_histories:int) -> ResponseSchema:
     return output_parser
     
 def prepare_answer_format_review(base_dict_values:Dict[str,str]|None = None) -> List[ResponseSchema]:
+    """
+    Prepare the answer format for the story generator
+    """
     if base_dict_values is None:
         base_dict_values = history_base_values()
     number_of_pages = base_dict_values["pages"]
@@ -285,6 +294,9 @@ def prepare_answer_format_review(base_dict_values:Dict[str,str]|None = None) -> 
     output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     return output_parser
 def prepare_answer_format_to_prompt_image(base_dict_values:Dict[str,Any]|None  = None) -> ResponseSchema:
+    """
+    Prepare the answer format for the story generator
+    """
     if base_dict_values is None:
         base_dict_values = history_base_values()
     number_of_pages = base_dict_values["pages"]

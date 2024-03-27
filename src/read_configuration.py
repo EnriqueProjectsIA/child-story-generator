@@ -5,7 +5,7 @@ import configparser
 
 def history_base_values(path:str|None = None) -> Dict[str, Any]:
     """
-    Read the base values for the history generator
+    Read the base values for the history generator from the configuration file.
     """
     config = configparser.ConfigParser()
     if not path:
